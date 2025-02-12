@@ -3,23 +3,24 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_ACCOUNTS 100  
+#define MAX_ACCOUNTS 100
 
-
-struct date {
+typedef struct {
     int day, month, year;
-};
+} Date;
 
-
-struct accountInfo {
-    char userId[12];
-    char fullName[30];
+typedef struct {
+    char userId[13];
+    char fullName[50];
+    char email[50];
+    char phone[15];
     char username[30];
     char password[30];
-    char email[30];
-    char phone[11];
-    bool gender;
-    struct date dateOfBirth;
+    int gender; // 0: Male, 1: Female
+    Date dateOfBirth;
     float balance;
-    bool status; 
-};
+    bool status; // true: Open, false: Locked
+} Account;
+
+extern Account accounts[MAX_ACCOUNTS];
+extern int accountCount;
