@@ -3,6 +3,48 @@
 Account accounts[MAX_ACCOUNTS];
 int accountCount = 0;
 
+bool isValidNumber(const char *str) {
+    if (strlen(str) == 0) return false;
+    for (int i = 0; i < strlen(str); i++) {
+        if (!isdigit(str[i])) return false;
+    }
+    return true;
+}
+
+// Kiểm tra chuỗi chỉ chứa chữ cái và khoảng trắng
+bool isValidName(const char *str) {
+    if (strlen(str) == 0) return false;
+    for (int i = 0; i < strlen(str); i++) {
+        if (isdigit(str[i]) || ispunct(str[i])) return false;
+    }
+    return true;
+}
+
+void saveAccountsToFile() {
+    FILE *file = fopen(FILE_NAME, "wb");
+    if (file == NULL) {
+        printf("Error saving data!\n");
+        return;
+    }
+    fwrite(&accountCount, sizeof(int), 1, file);
+    fwrite(accounts, sizeof(Account), accountCount, file);
+    fclose(file);
+}
+
+// Đọc danh sách tài khoản từ file khi khởi động
+void loadAccountsFromFile() {
+    FILE *file = fopen(FILE_NAME, "rb");
+    if (file == NULL) {
+        printf("No previous account data found.\n");
+        return;
+    }
+    fread(&accountCount, sizeof(int), 1, file);
+    fread(accounts, sizeof(Account), accountCount, file);
+    fclose(file);
+}
+
+
+
 // Kiểm tra trùng lặp ID, Email, SĐT
 bool isDuplicate(const char *userId, const char *email, const char *phone, const char *username) {
     for (int i = 0; i < accountCount; i++) {
@@ -50,51 +92,117 @@ void addAccount() {
     Account newAccount;
     printf("\n*** Add New Account ***\n");
 
+    // Nhập userId (12 ký tự, không trùng)
     do {
-    printf("Enter ID (12 characters): ");
-    scanf("%12s", newAccount.userId);
-    getchar();
-} while (strlen(newAccount.userId) != 12 || isDuplicate(newAccount.userId, "", "", ""));
+    printf("Enter ID (12 digits): ");
+    fgets(newAccount.userId, 13, stdin);
+    newAccount.userId[strcspn(newAccount.userId, "\n")] = 0; // Xóa dấu xuống dòng
 
+    if (strlen(newAccount.userId) == 0) { 
+        printf("ID cannot be empty. Please enter again.\n");
+        continue;
+    }
+    if (strlen(newAccount.userId) != 12 || !isValidNumber(newAccount.userId) || isDuplicate(newAccount.userId, "", "", "")) {
+        printf("ID must be exactly 12 digits and unique. Please enter again.\n");
+    }
+} while (strlen(newAccount.userId) == 0 || strlen(newAccount.userId) != 12 || !isValidNumber(newAccount.userId) || isDuplicate(newAccount.userId, "", "", ""));
+
+    // Nhập họ tên (không để trống)
+    do {
     printf("Enter full name: ");
     fgets(newAccount.fullName, 50, stdin);
     newAccount.fullName[strcspn(newAccount.fullName, "\n")] = 0;
 
+    if (strlen(newAccount.fullName) == 0) {
+        printf("Full name cannot be empty. Please enter again.\n");
+        continue;
+    }
+
+    if (!isValidName(newAccount.fullName)) {
+        printf("Full name must not contain numbers or special characters. Please enter again.\n");
+    }
+} while (!isValidName(newAccount.fullName) || strlen(newAccount.fullName) == 0);
+
+    // Nhập email (không trống, không trùng)
     do {
-    	printf("Enter email: ");
-    	fgets(newAccount.email, 50, stdin);
-    	newAccount.email[strcspn(newAccount.email, "\n")] = 0;
-		} while (isDuplicate("", newAccount.email, "", ""));
+        printf("Enter email: ");
+        fgets(newAccount.email, 50, stdin);
+        newAccount.email[strcspn(newAccount.email, "\n")] = 0;
 
+        if (strlen(newAccount.email) == 0 || isDuplicate("", newAccount.email, "", "")) {
+            printf("Email cannot be empty and must be unique. Please enter again.\n");
+        }
+    } while (strlen(newAccount.email) == 0 || isDuplicate("", newAccount.email, "", ""));
+
+    // Nhập số điện thoại (không trống, không trùng)
+     do {
+        printf("Enter phone number: ");
+        fgets(newAccount.phone, 15, stdin);
+        newAccount.phone[strcspn(newAccount.phone, "\n")] = 0;
+        if (!isValidNumber(newAccount.phone) || isDuplicate("", "", newAccount.phone, "")) {
+            printf("Phone number must contain only digits and be unique. Please enter again.\n");
+        }
+    } while (!isValidNumber(newAccount.phone) || isDuplicate("", "", newAccount.phone, ""));
+
+
+    // Nhập username (không trống, không trùng)
     do {
-    	printf("Enter phone: ");
-    	fgets(newAccount.phone, 15, stdin);
-    	newAccount.phone[strcspn(newAccount.phone, "\n")] = 0;
-		} while (isDuplicate("", "", newAccount.phone, ""));
+        printf("Enter username: ");
+        fgets(newAccount.username, 30, stdin);
+        newAccount.username[strcspn(newAccount.username, "\n")] = 0;
 
-	do {
-    	printf("Enter username: ");
-    	fgets(newAccount.username, 30, stdin);
-    	newAccount.username[strcspn(newAccount.username, "\n")] = 0;
-		} while (isDuplicate("", "", "", newAccount.username));
+        if (strlen(newAccount.username) == 0 || isDuplicate("", "", "", newAccount.username)) {
+            printf("Username cannot be empty and must be unique. Please enter again.\n");
+        }
+    } while (strlen(newAccount.username) == 0 || isDuplicate("", "", "", newAccount.username));
 
-    printf("Enter password: ");
-    fgets(newAccount.password, 30, stdin);
-    newAccount.password[strcspn(newAccount.password, "\n")] = 0;
+    // Nhập password (không để trống)
+    do {
+        printf("Enter password: ");
+        fgets(newAccount.password, 30, stdin);
+        newAccount.password[strcspn(newAccount.password, "\n")] = 0;
 
-    printf("Enter gender (0: Male, 1: Female): ");
-    scanf("%d", &newAccount.gender);
+        if (strlen(newAccount.password) == 0) {
+            printf("Password cannot be empty. Please enter again.\n");
+        }
+    } while (strlen(newAccount.password) == 0);
 
+    // Nhập giới tính (0 hoặc 1)
+    do {
+        printf("Enter gender (0: Male, 1: Female): ");
+        if (scanf("%d", &newAccount.gender) != 1 || (newAccount.gender != 0 && newAccount.gender != 1)) {
+            printf("Invalid gender. Please enter 0 for Male or 1 for Female.\n");
+        }
+        while (getchar() != '\n'); // Xóa bộ đệm
+    } while (newAccount.gender != 0 && newAccount.gender != 1);
+
+    // Nhập ngày sinh (hợp lệ)
     do {
         printf("Enter date of birth (dd mm yyyy): ");
-        scanf("%d %d %d", &newAccount.dateOfBirth.day, &newAccount.dateOfBirth.month, &newAccount.dateOfBirth.year);
+        if (scanf("%d %d %d", &newAccount.dateOfBirth.day, &newAccount.dateOfBirth.month, &newAccount.dateOfBirth.year) != 3
+            || !isValidDate(newAccount.dateOfBirth.day, newAccount.dateOfBirth.month, newAccount.dateOfBirth.year)) {
+            printf("Invalid date of birth. Please enter again.\n");
+        }
+        while (getchar() != '\n'); // Xóa bộ đệm
     } while (!isValidDate(newAccount.dateOfBirth.day, newAccount.dateOfBirth.month, newAccount.dateOfBirth.year));
 
-    printf("Enter balance: ");
-    scanf("%f", &newAccount.balance);
+    // Nhập số dư (không âm)
+    do {
+        printf("Enter balance: ");
+        char balanceStr[20];
+        fgets(balanceStr, 20, stdin);
+        balanceStr[strcspn(balanceStr, "\n")] = 0;
+        if (!isValidNumber(balanceStr) || atof(balanceStr) < 0) {
+            printf("Balance must be a valid non-negative number. Please enter again.\n");
+        } else {
+            newAccount.balance = atof(balanceStr);
+            break;
+        }
+    } while (1);
 
     newAccount.status = true;
     accounts[accountCount++] = newAccount;
+    saveAccountsToFile();
     printf("Account added successfully!\n");
     waitForBackOrExit();
 }
@@ -137,6 +245,7 @@ void lockUnlockAccount() {
             confirm = toupper(confirm);
             if (confirm == 'Y') {
                 accounts[i].status = !accounts[i].status;
+                saveAccountsToFile();
                 printf("Account %s has been %s!\n", userId, accounts[i].status ? "Unlocked" : "Locked");
             } else {
                 printf("Operation cancelled.\n");
@@ -149,44 +258,38 @@ void lockUnlockAccount() {
     waitForBackOrExit();
 }
 
-// Tìm kiếm người dùng theo username
-//void debugShowAllUsers() {
-//    printf("\n--- Debug: Danh sách tài khoản ---\n");
- //   for (int i = 0; i < accountCount; i++) {
- //       printf("Username: %s\n", accounts[i].username);
- //   }
-//    printf("-------------------------------\n");
-//}
 
-void searchUserByUsername() {
-    char username[30];
-    printf("Enter username to search: ");
-    scanf("%s", username);
+void searchUserByID() {
+    char userId[30];
+    printf("Enter User ID to search: ");
+    scanf("%s", userId);
 
-   // debugShowAllUsers(); // Hiển thị danh sách tài khoản để kiểm tra dữ liệu
+    printf("\n|%-12s|%-20s|%-20s|%-15s|%-10s|%-10s|%-15s|%-10s|\n", 
+           "User ID", "Full Name", "Email", "Phone", "Gender", "DOB", "Balance", "Status");
+    printf("------------------------------------------------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < accountCount; i++) {
-        printf("Comparing with: %s\n", accounts[i].username); // Debug so sánh
-
-        if (strcmp(accounts[i].username, username) == 0) {
-            printf("\n*** Account Information ***\n");
-            printf("ID: %s\n", accounts[i].userId);
-            printf("Full Name: %s\n", accounts[i].fullName);
-            printf("Email: %s\n", accounts[i].email);
-            printf("Phone Number: %s\n", accounts[i].phone);
-            printf("Username: %s\n", accounts[i].username);
-            printf("Gender: %s\n", accounts[i].gender == 0 ? "Male" : "Female");
-            printf("Date of Birth: %02d/%02d/%04d\n", accounts[i].dateOfBirth.day,
-                   accounts[i].dateOfBirth.month, accounts[i].dateOfBirth.year);
-            printf("Account Balance: %.2f\n", accounts[i].balance);
-            printf("Status: %s\n", accounts[i].status ? "Open" : "Locked");
+        if (strcmp(accounts[i].userId, userId) == 0) {
+            printf("|%-12s|%-20s|%-20s|%-15s|%-10s|%02d/%02d/%04d|%-15.2f|%-10s|\n",
+                   accounts[i].userId,
+                   accounts[i].fullName,
+                   accounts[i].email,
+                   accounts[i].phone,
+                   accounts[i].gender == 0 ? "Male" : "Female",
+                   accounts[i].dateOfBirth.day,
+                   accounts[i].dateOfBirth.month,
+                   accounts[i].dateOfBirth.year,
+                   accounts[i].balance,
+                   accounts[i].status ? "Open" : "Locked");
+    		printf("------------------------------------------------------------------------------------------------------------------------\n");
             waitForBackOrExit();
             return;
         }
     }
-    printf("No user found with username: %s\n", username);
+    printf("No user found with User ID: %s\n", userId);
     waitForBackOrExit();
 }
+
 
 // Hàm so sánh tên để sắp xếp A-Z
 int compareNamesAsc(const void *a, const void *b) {
@@ -229,7 +332,7 @@ void adminMenu() {
             case 1: addAccount(); break;
             case 2: showAllAccounts(); break;
             case 3: lockUnlockAccount(); break;
-            case 4: searchUserByUsername(); break;
+            case 4: searchUserByID(); break;
             case 5: sortAccounts(); break;
             case 0: return;
             default: printf("Invalid choice!\n");

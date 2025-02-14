@@ -1,8 +1,8 @@
 #include "function.h"
 
 int main() {
+	loadAccountsFromFile();
     int choice;
-
     while (1) {
         printf("***Bank Management System Using C***\n\n");
         printf("%10s%16s\n"," ","CHOOSE YOUR ROLE");
