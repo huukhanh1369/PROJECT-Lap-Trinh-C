@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+
 #define FILE_NAME "account.bin"
 #define MAX_ACCOUNTS 100
 

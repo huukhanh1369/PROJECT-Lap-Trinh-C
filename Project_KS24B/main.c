@@ -16,6 +16,7 @@ int main() {
 
         switch (choice) {
             case 1:
+            	system("cls");
                 adminLogin();
                 break;
             case 0:

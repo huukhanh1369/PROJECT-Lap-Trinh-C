@@ -69,7 +69,7 @@ void waitForBackOrExit() {
             printf("Exiting the program...\n");
             exit(0);
         }
-    } while (choice != 'B');
+    } while (choice != 'B'); system("cls");
 }
 
 // Kiểm tra ngày hợp lệ
@@ -94,6 +94,7 @@ void addAccount() {
 
     // Nhập userId (12 ký tự, không trùng)
     do {
+    fflush(stdin);
     printf("Enter ID (12 digits): ");
     fgets(newAccount.userId, 13, stdin);
     newAccount.userId[strcspn(newAccount.userId, "\n")] = 0; // Xóa dấu xuống dòng
@@ -109,6 +110,7 @@ void addAccount() {
 
     // Nhập họ tên (không để trống)
     do {
+    fflush(stdin);
     printf("Enter full name: ");
     fgets(newAccount.fullName, 50, stdin);
     newAccount.fullName[strcspn(newAccount.fullName, "\n")] = 0;
@@ -264,13 +266,14 @@ void searchUserByID() {
     printf("Enter User ID to search: ");
     scanf("%s", userId);
 
-    printf("\n|%-12s|%-20s|%-20s|%-15s|%-10s|%-10s|%-15s|%-10s|\n", 
-           "User ID", "Full Name", "Email", "Phone", "Gender", "DOB", "Balance", "Status");
-    printf("------------------------------------------------------------------------------------------------------------------------\n");
+
 
     for (int i = 0; i < accountCount; i++) {
         if (strcmp(accounts[i].userId, userId) == 0) {
-            printf("|%-12s|%-20s|%-20s|%-15s|%-10s|%02d/%02d/%04d|%-15.2f|%-10s|\n",
+        	printf("\n|%-12s|%-20s|%-20s|%-15s|%-10s|%-10s|%-15s|%-8s|\n", 
+           "User ID", "Full Name", "Email", "Phone", "Gender", "DOB", "Balance", "Status");
+    		printf("----------------------------------------------------------------------------------------------------------------------\n");
+            printf("|%-12s|%-20s|%-20s|%-15s|%-10s|%02d/%02d/%04d|%-15.2f|%-8s|\n",
                    accounts[i].userId,
                    accounts[i].fullName,
                    accounts[i].email,
@@ -281,7 +284,7 @@ void searchUserByID() {
                    accounts[i].dateOfBirth.year,
                    accounts[i].balance,
                    accounts[i].status ? "Open" : "Locked");
-    		printf("------------------------------------------------------------------------------------------------------------------------\n");
+    		printf("----------------------------------------------------------------------------------------------------------------------\n");
             waitForBackOrExit();
             return;
         }
@@ -329,11 +332,11 @@ void adminMenu() {
         printf("\n1. Add Account\n2. Show All Accounts\n3. Lock/Unlock Account\n4. Search User by Username\n5. Sort Accounts\n0. Exit\nEnter choice: ");
         scanf("%d", &choice);
         switch (choice) {
-            case 1: addAccount(); break;
-            case 2: showAllAccounts(); break;
-            case 3: lockUnlockAccount(); break;
-            case 4: searchUserByID(); break;
-            case 5: sortAccounts(); break;
+            case 1: system("cls"); addAccount(); break;
+            case 2: system("cls"); showAllAccounts(); break;
+            case 3: system("cls"); lockUnlockAccount(); break;
+            case 4: system("cls"); searchUserByID(); break;
+            case 5: system("cls"); sortAccounts(); break;
             case 0: return;
             default: printf("Invalid choice!\n");
         }
