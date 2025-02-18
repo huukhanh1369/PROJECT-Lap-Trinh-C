@@ -5,10 +5,10 @@
 #include <ctype.h>
 #include <conio.h>
 
-#define ADMIN_FILE "admin.txt"
+#define ADMIN_FILE "admin.bin"
 #define FILE_NAME "account.bin"
 #define MAX_ACCOUNTS 100
-
+#define MAX_USERNAME_LENGTH 30
 typedef struct {
     int day, month, year;
 } Date;
@@ -25,6 +25,11 @@ typedef struct {
     float balance;
     bool status; // true: Open, false: Locked
 } Account;
+
+typedef struct {
+    char username[30];
+    char password[30];
+} AdminAccount;
 
 extern Account accounts[MAX_ACCOUNTS];
 extern int accountCount;

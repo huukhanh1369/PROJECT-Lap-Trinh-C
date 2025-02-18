@@ -2,6 +2,30 @@
 
 Account accounts[MAX_ACCOUNTS];
 int accountCount = 0;
+Account adminAccount;
+
+
+void saveAdminAccount() {
+    AdminAccount admin;
+    FILE *file;
+
+    printf("Enter admin username: ");
+    scanf("%s", admin.username);
+    printf("Enter admin password: ");
+    getPassword(admin.password);
+
+    // Mở file để ghi thông tin admin vào
+    file = fopen(ADMIN_FILE, "wb");
+    if (file == NULL) {
+        printf("Error! Cannot open admin file.\n");
+        return;
+    }
+
+    // Ghi thông tin admin vào file
+    fwrite(&admin, sizeof(AdminAccount), 1, file);
+    fclose(file);
+    printf("Admin account has been saved successfully.\n");
+}
 
 void getPassword(char* password) {
     char ch;
@@ -396,7 +420,8 @@ void adminMenu() {
 
 // Đăng nhập Admin
 void adminLogin() {
-    char username[30], password[30], fileUser[30], filePass[30];
+    char username[30], password[30];
+    AdminAccount admin;
     FILE *file;
 
     printf("*** Bank Management System Using C ***\n\n");
@@ -408,20 +433,21 @@ void adminLogin() {
     getPassword(password);
 
     // Mở file chứa thông tin admin
-    file = fopen(ADMIN_FILE, "r");
+    file = fopen(ADMIN_FILE, "rb");
     if (file == NULL) {
         printf("Error! Cannot open admin file.\n");
         return;
     }
 
-    // Đọc username và password từ file
-    fscanf(file, "%s %s", fileUser, filePass);
+    // Đọc tài khoản admin từ file
+    fread(&admin, sizeof(AdminAccount), 1, file);
     fclose(file);
 
     // Kiểm tra thông tin đăng nhập
-    if (strcmp(username, fileUser) == 0 && strcmp(password, filePass) == 0) {
+    if (strcmp(username, admin.username) == 0 && strcmp(password, admin.password) == 0) {
         printf("Login successful!\n");
         system("cls");
+        // Gọi menu quản trị viên (adminMenu() phải được định nghĩa ở đâu đó trong chương trình)
         adminMenu();
     } else {
         system("cls");
