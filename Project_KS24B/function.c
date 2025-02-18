@@ -3,6 +3,29 @@
 Account accounts[MAX_ACCOUNTS];
 int accountCount = 0;
 
+void getPassword(char* password) {
+    char ch;
+    int i = 0;
+
+    while (1) {
+        ch = getch(); // Lấy ký tự mà người dùng nhập vào
+        if (ch == 13) { // Kiểm tra nếu người dùng nhấn Enter (13 là mã ASCII của Enter)
+            password[i] = '\0'; // Kết thúc chuỗi mật khẩu
+            break;
+        } else if (ch == 8) { // Kiểm tra nếu người dùng nhấn phím Backspace
+            if (i > 0) {
+                i--;
+                printf("\b \b"); // Xóa ký tự vừa nhập
+            }
+        } else {
+            password[i] = ch; // Lưu ký tự mật khẩu
+            i++;
+            printf("*"); // In dấu * ra màn hình thay vì ký tự thực tế
+        }
+    }
+    printf("\n");
+}
+
 bool isValidNumber(const char *str) {
     if (strlen(str) == 0) return false;
     for (int i = 0; i < strlen(str); i++) {
@@ -10,7 +33,22 @@ bool isValidNumber(const char *str) {
     }
     return true;
 }
+//kiem tra gmail hop le hay khong
+bool isValidGmail(const char *email) {
+    int len = strlen(email);
+    
+    // Kiểm tra email có chứa ít nhất một ký tự trước "@gmail.com" hay không
+    if (len < 11 || strstr(email, "@gmail.com") == NULL) {
+        return false;
+    }
+    
+    // Kiểm tra phần cuối của email có đúng là "@gmail.com" không
+    if (strcmp(email + (len - 10), "@gmail.com") != 0) {
+        return false;
+    }
 
+    return true;
+}
 // Kiểm tra chuỗi chỉ chứa chữ cái và khoảng trắng
 bool isValidName(const char *str) {
     if (strlen(str) == 0) return false;
@@ -129,12 +167,16 @@ void addAccount() {
     do {
         printf("Enter email: ");
         fgets(newAccount.email, 50, stdin);
-        newAccount.email[strcspn(newAccount.email, "\n")] = 0;
+        newAccount.email[strcspn(newAccount.email, "\n")] = 0; // Xóa ký tự xuống dòng
 
-        if (strlen(newAccount.email) == 0 || isDuplicate("", newAccount.email, "", "")) {
-            printf("Email cannot be empty and must be unique. Please enter again.\n");
+        if (strlen(newAccount.email) == 0) {
+            printf("Email cannot be empty. Please enter again.\n");
+        } else if (!isValidGmail(newAccount.email)) {
+            printf("Invalid email! Please enter a valid Gmail address (example@gmail.com).\n");
+        } else if (isDuplicate("", newAccount.email, "", "")) {
+            printf("Email must be unique. Please enter another email.\n");
         }
-    } while (strlen(newAccount.email) == 0 || isDuplicate("", newAccount.email, "", ""));
+    } while (strlen(newAccount.email) == 0 || !isValidGmail(newAccount.email) || isDuplicate("", newAccount.email, "", ""));
 
     // Nhập số điện thoại (không trống, không trùng)
      do {
@@ -216,15 +258,15 @@ void showAllAccounts() {
         waitForBackOrExit();
         return;
     }
-	printf("|-------------|--------------------|----------------------|------------|--------|\n");
-    printf("| ID          | Full Name          | Email                | Phone      | Status |\n");
-    printf("|-------------|--------------------|----------------------|------------|--------|\n");
+	printf("|-------------|---------------------|----------------------|------------|--------|\n");
+    printf("| ID          | Full Name           | Email                | Phone      | Status |\n");
+    printf("|-------------|---------------------|----------------------|------------|--------|\n");
 
     for (int i = 0; i < accountCount; i++) {
-        printf("|%-13s|%-20s|%-22s|%-12s|%-8s|\n",
+        printf("|%-13s|%-21s|%-22s|%-12s|%-8s|\n",
                accounts[i].userId, accounts[i].fullName, accounts[i].email, accounts[i].phone,
                accounts[i].status ? "Open" : "Locked");
-        printf("|-------------|--------------------|----------------------|------------|--------|\n");
+        printf("|-------------|---------------------|----------------------|------------|--------|\n");
     }
     waitForBackOrExit();
 }
@@ -270,10 +312,10 @@ void searchUserByID() {
 
     for (int i = 0; i < accountCount; i++) {
         if (strcmp(accounts[i].userId, userId) == 0) {
-        	printf("\n|%-12s|%-20s|%-20s|%-15s|%-10s|%-10s|%-15s|%-8s|\n", 
+        	printf("\n|%-12s|%-21s|%-20s|%-15s|%-10s|%-10s|%-15s|%-8s|\n", 
            "User ID", "Full Name", "Email", "Phone", "Gender", "DOB", "Balance", "Status");
-    		printf("----------------------------------------------------------------------------------------------------------------------\n");
-            printf("|%-12s|%-20s|%-20s|%-15s|%-10s|%02d/%02d/%04d|%-15.2f|%-8s|\n",
+    		printf("|------------|---------------------|--------------------|---------------|----------|----------|---------------|--------|\n");
+            printf("|%-12s|%-21s|%-20s|%-15s|%-10s|%02d/%02d/%04d|%-15.2f|%-8s|\n",
                    accounts[i].userId,
                    accounts[i].fullName,
                    accounts[i].email,
@@ -284,7 +326,7 @@ void searchUserByID() {
                    accounts[i].dateOfBirth.year,
                    accounts[i].balance,
                    accounts[i].status ? "Open" : "Locked");
-    		printf("----------------------------------------------------------------------------------------------------------------------\n");
+    		printf("|------------|---------------------|--------------------|---------------|----------|----------|---------------|--------|\n");
             waitForBackOrExit();
             return;
         }
@@ -311,53 +353,120 @@ void sortAccounts() {
     scanf("%d", &sortChoice);
 
     if (sortChoice == 1) {
-        qsort(accounts, accountCount, sizeof(Account), compareNamesAsc);
+        qsort(accounts, accountCount, sizeof(Account), compareNamesAsc); system("cls");
         printf("Sorted A-Z successfully!\n");
         showAllAccounts();
     } else if (sortChoice == 2) {
-        qsort(accounts, accountCount, sizeof(Account), compareNamesDesc);
+        qsort(accounts, accountCount, sizeof(Account), compareNamesDesc); system("cls");
         printf("Sorted Z-A successfully!\n");
         showAllAccounts();
     } else {
         printf("Invalid choice!\n");
     }
-    waitForBackOrExit();
 }
 
 // Menu quản lý Admin
 void adminMenu() {
     int choice;
-    while (1) {
-    	printf("***Bank Management System Using C***\n\n");
-        printf("\n1. Add Account\n2. Show All Accounts\n3. Lock/Unlock Account\n4. Search User by Username\n5. Sort Accounts\n0. Exit\nEnter choice: ");
+    do {
+        printf("***Bank Management System Using C***\n\n");
+        printf("%6s%25s\n"," ","=========================");
+        printf("%6s%10s\n"," ","[1] add Account.");
+        printf("%6s%9s\n"," ","[2] show All Accounts.");
+        printf("%6s%9s\n"," ","[3] loc kUnlock Account.");
+        printf("%6s%9s\n"," ","[4] search User By ID.");
+    	printf("%6s%9s\n"," ","[5] sort Accounts.");
+        printf("%5s%22s\n"," ","[0] Exit The Program.");
+        printf("%6s%25s\n"," ","=========================");
+        printf("%6s%18s"," ","Enter the choice: ");
         scanf("%d", &choice);
+        getchar();
         switch (choice) {
             case 1: system("cls"); addAccount(); break;
             case 2: system("cls"); showAllAccounts(); break;
             case 3: system("cls"); lockUnlockAccount(); break;
             case 4: system("cls"); searchUserByID(); break;
             case 5: system("cls"); sortAccounts(); break;
-            case 0: return;
-            default: printf("Invalid choice!\n");
+            case 0: system("cls"); return;
+            default:printf("Invalid choice!\n"); 
         }
+        }while(choice!=0);
     }
-}
+
 
 // Đăng nhập Admin
 void adminLogin() {
-    char username[30], password[30];
-    printf("***Bank Management System Using C***\n\n");
-    printf("%10s%11s\n"," ","ADMIN LOGIN");
-    printf("%6s%25s\n"," ","=========================");
-    printf("%6s%10s"," ","Username: ");
-    scanf("%s", username);
-    printf("%6s%10s"," ","Password: ");
-    scanf("%s", password);
+    char username[30], password[30], fileUser[30], filePass[30];
+    FILE *file;
 
-    if (strcmp(username, "admin") == 0 && strcmp(password, "admin123") == 0) {
+    printf("*** Bank Management System Using C ***\n\n");
+    printf("%10s%11s\n", " ", "ADMIN LOGIN");
+    printf("%6s%25s\n", " ", "=========================");
+    printf("%6s%10s", " ", "Username: ");
+    scanf("%s", username);
+    printf("%6s%10s", " ", "Password: ");
+    getPassword(password);
+
+    // Mở file chứa thông tin admin
+    file = fopen(ADMIN_FILE, "r");
+    if (file == NULL) {
+        printf("Error! Cannot open admin file.\n");
+        return;
+    }
+
+    // Đọc username và password từ file
+    fscanf(file, "%s %s", fileUser, filePass);
+    fclose(file);
+
+    // Kiểm tra thông tin đăng nhập
+    if (strcmp(username, fileUser) == 0 && strcmp(password, filePass) == 0) {
         printf("Login successful!\n");
+        system("cls");
         adminMenu();
     } else {
+        system("cls");
         printf("Wrong username or password!\n");
+    }
+}
+
+//dang nhap nguoi dung
+void loginUser() {
+    char userId[30];
+    char password[30];
+    int found;
+
+    while (1) { // Lặp vô hạn đến khi đăng nhập thành công hoặc tài khoản bị khóa
+        printf("Enter User ID: ");
+        fgets(userId, sizeof(userId), stdin); // Dùng fgets để nhập an toàn
+        userId[strcspn(userId, "\n")] = 0; // Loại bỏ ký tự newline
+
+        printf("Enter Password: ");
+        //fgets(password, sizeof(password), stdin); // Dùng fgets để nhập an toàn
+        //password[strcspn(password, "\n")] = 0; // Loại bỏ ký tự newline
+        getPassword(password);
+
+        found = 0; // Biến kiểm tra xem tài khoản có tồn tại hay không
+
+        for (int i = 0; i < accountCount; i++) {
+            if (strcmp(accounts[i].userId, userId) == 0) { // Tìm thấy tài khoản
+                found = 1;
+
+                if (strcmp(accounts[i].password, password) == 0) { // Mật khẩu đúng
+                    if (accounts[i].status == 0) { // Tài khoản bị khóa
+                    	system("cls");
+                        printf("Your account is locked. Returning to the main menu...\n");
+                        return; // Quay lại menu chính
+                    } else {
+                        printf("Login successful! Welcome, %s.\n", accounts[i].fullName);
+                        return; // Thoát khi đăng nhập thành công
+                    }
+                }
+                break;
+            }
+        }
+
+        if (found == 0) { // Nếu không tìm thấy tài khoản
+            printf("Invalid User ID or Password. Please try again.\n");
+        }
     }
 }

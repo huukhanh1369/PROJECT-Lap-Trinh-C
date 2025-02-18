@@ -3,8 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <conio.h>
 
-
+#define ADMIN_FILE "admin.txt"
 #define FILE_NAME "account.bin"
 #define MAX_ACCOUNTS 100
 
